@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e8e8ed">
+<title>A3 TF AI 트렌드 노트 #5 — 카드뉴스</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Archivo:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Pretendard', sans-serif; }
+  .card { position:relative; width:1080px; height:1080px; background:#ffffff; border-radius:24px; overflow:hidden; padding:80px; display:flex; flex-direction:column; box-shadow:0 24px 64px rgba(0,0,0,.14); }
+  .wm { position:absolute; right:-20px; bottom:-90px; font-family:'Do Hyeon',sans-serif; font-size:420px; color:rgba(115,70,243,.055); line-height:.8; pointer-events:none; }
+  .top { display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1; }
+  .eyebrow { font-family:'Archivo',sans-serif; font-weight:700; font-size:23px; letter-spacing:.2em; color:#86868b; }
+  .pg { font-weight:700; font-size:22px; color:#86868b; background:rgba(29,29,31,.06); padding:7px 18px; border-radius:999px; font-variant-numeric:tabular-nums; }
+  .sec { display:flex; align-items:center; gap:12px; }
+  .sec-tag { font-family:'Archivo',sans-serif; font-weight:700; font-size:24px; letter-spacing:.22em; color:#7346f3; }
+  .sec-dot { color:#7346f3; font-size:18px; }
+  .title { font-family:'Do Hyeon',sans-serif; color:#1d1d1f; letter-spacing:-.005em; }
+  .rule { height:8px; border-radius:5px; background:linear-gradient(120deg,#7346f3,#9f5cff 55%,#c644d6); margin-top:14px; }
+  .body { position:relative; z-index:1; flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .bullets { display:flex; flex-direction:column; gap:18px; margin-top:38px; }
+  .bl { display:flex; gap:18px; align-items:flex-start; }
+  .bl-dot { flex:none; width:13px; height:13px; border-radius:3px; background:linear-gradient(120deg,#7346f3,#c644d6); margin-top:13px; }
+  .bl p { font-weight:500; font-size:28px; line-height:1.48; color:#3a3550; }
+  .hl { color:#7346f3; font-weight:800; }
+  .foot { position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; }
+  .src { font-weight:600; font-size:23px; color:#86868b; }
+  .src b { color:#3a3550; font-weight:700; }
+  .handle { font-weight:700; font-size:23px; color:#86868b; }
+</style>
+<style>
+  html,body{height:100%;margin:0;background:#e8e8ed;overscroll-behavior:none;word-break:keep-all;}
+  body{display:flex;align-items:center;justify-content:center;height:100dvh;overflow:hidden;}
+  /* 좌우 스와이프 덱 — 높이는 카드 크기만큼, 화면 중앙에 배치 */
+  .deck{display:flex;width:100vw;height:var(--cs,60vh);
+        overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;
+        -webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .deck::-webkit-scrollbar{display:none;}
+  .slide{flex:0 0 100vw;width:100vw;height:100%;
+         display:flex;align-items:center;justify-content:center;
+         scroll-snap-align:center;scroll-snap-stop:always;}
+  /* 고정 1080 카드를 zoom 으로 레이아웃째 축소 → 정렬 안 깨짐 (JS가 --z·--ch 설정) */
+  .slide .card{zoom:var(--z,.4);height:var(--ch,1080px);flex:none;}
+  /* 상단 진행 바 */
+  .bar-wrap{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,.06);z-index:10;}
+  #bar{height:100%;width:4.5%;background:#7346f3;transition:width .25s ease;}
+  /* 상단 라벨 */
+  .brand{position:fixed;top:16px;left:0;right:0;text-align:center;z-index:10;
+         font-family:'Newsreader',serif;font-style:italic;font-size:15px;color:#a99f8c;pointer-events:none;}
+  /* 하단 카운터 */
+  .hud{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:10;
+       font-family:'Newsreader',serif;font-size:16px;letter-spacing:.06em;color:#8a8172;
+       background:rgba(255,255,255,.82);backdrop-filter:blur(6px);
+       padding:7px 16px;border-radius:999px;box-shadow:0 4px 16px rgba(0,0,0,.10);
+       font-variant-numeric:tabular-nums;}
+  .hud b{color:#7346f3;font-weight:500;}
+  /* 좌우 넘김 버튼 (데스크톱/마우스 전용) */
+  .nav{position:fixed;top:50%;transform:translateY(-50%);z-index:11;
+       width:48px;height:48px;border:none;border-radius:50%;cursor:pointer;
+       background:rgba(255,255,255,.9);box-shadow:0 4px 16px rgba(0,0,0,.14);
+       color:#5b5348;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;
+       transition:background .15s;}
+  .nav:hover{background:#fff;}
+  #prev{left:16px;} #next{right:16px;}
+  @media (pointer:coarse){ .nav{display:none;} }   /* 터치기기: 버튼 숨김(스와이프만) */
+  /* 스와이프 힌트 (첫 진입 후 사라짐) */
+  .hint{position:fixed;bottom:58px;left:50%;transform:translateX(-50%);z-index:10;
+        font-size:13px;color:#a99f8c;background:rgba(255,255,255,.72);padding:5px 12px;border-radius:999px;
+        transition:opacity .5s;pointer-events:none;}
+  .hint.gone{opacity:0;}</style>
+</head>
+<body>
+<div class="bar-wrap"><div id="bar"></div></div>
+<div class="brand">A3 TF · AI 트렌드 노트 #5</div>
+<div class="deck">
+<div class="slide"><section data-screen-label="01" class="card">
+    <span class="wm" style="font-size:600px; right:-30px; bottom:-120px; color:rgba(115,70,243,.07);">#5</span>
+    <div style="position:relative; z-index:1; display:flex; flex-direction:column; height:100%;">
+      <div class="top">
+        <span class="sec-tag">A3 TF · AI 트렌드 노트&nbsp;&nbsp;◆</span>
+        <span class="pg">01 / 22</span>
+      </div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+        <div class="eyebrow" style="color:#7346f3; margin-bottom:26px;">26.07.23 · #5</div>
+        <h1 class="title" style="font-size:120px; line-height:1.06;">이번 회차<br>챙길 것 <span style="color:#7346f3;">19개</span></h1>
+        <div class="rule" style="width:420px; height:9px;"></div>
+        <p style="font-weight:500; font-size:38px; line-height:1.5; color:#3a3550; margin-top:44px; max-width:840px;">지난 2주 AI 변화 중 볼 만한 것만 골랐습니다.</p>
+      </div>
+      <div class="foot">
+        <span style="font-family:'Archivo',serif; font-style:italic; font-weight:600; font-size:32px; color:#7346f3;">swipe to read →</span>
+        <span class="handle">A3 TF · AI 트렌드 노트</span>
+      </div>
+    </div>
+  </section></div>
+<div class="slide"><section data-screen-label="02" class="card">
+    <span class="wm" style="font-size:520px;">00</span>
+    <div class="top">
+      <span class="eyebrow">— BEFORE WE START</span>
+      <span class="pg">02 / 22</span>
+    </div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">들어가기 전에</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:78px; line-height:1.08; margin-top:24px;">볼 만한 것만<br>골랐습니다</h2>
+      <div class="rule" style="width:300px;"></div>
+      <div style="margin-top:46px; display:flex; flex-direction:column; gap:24px; max-width:880px;">
+        <p style="font-weight:500; font-size:36px; line-height:1.55; color:#3a3550;">이번 회차 챙길 것 <span class="hl">19개</span>입니다.</p>
+        <p style="font-weight:500; font-size:36px; line-height:1.55; color:#3a3550;">지난 기간 AI 변화 중 볼 만한 것만 골랐습니다.</p>
+        <p style="font-weight:500; font-size:36px; line-height:1.55; color:#3a3550;">각 카드에 요약을 담았고, 원문 링크는 <span class="hl">위키</span>에 있습니다.</p>
+      </div>
+    </div>
+    <div class="foot"><span></span><span class="handle">A3 TF · #5</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="03" class="card">
+    <span class="wm">01</span>
+    <div class="top"><span class="eyebrow">SECTION 1 · MODELS</span><span class="pg">03 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">모델</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:60px; line-height:1.14; margin-top:18px;">GPT-5.6, Fable 5를<br><span style="color:#7346f3;">4분의 1 값</span>에 눌렀다</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>OpenAI가 코딩·에이전트 특화 GPT-5.6 제품군을 공개 — 플래그십 Sol, 균형형 Terra, 저비용 Luna 셋입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>장기 전문 업무 평가에서 Sol이 Claude Fable 5를 <span class="hl">13.1점</span> 앞서 최고 기록을 세웠습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>추론을 중간으로 낮춰도 <span class="hl">4분의 1 비용</span>, 코딩 평가에선 시간·비용이 절반 이하였습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>기본값으로 에이전트 4개를 병렬로 굴리는 <span class="hl">ultra 모드</span>도 새로 붙었습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>OpenAI</b></span><span class="handle">07-09</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="04" class="card">
+    <span class="wm">02</span>
+    <div class="top"><span class="eyebrow">SECTION 1 · MODELS</span><span class="pg">04 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">모델</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:58px; line-height:1.14; margin-top:18px;">머스크가 Cursor를 삼켰다<br>그 첫 작품 <span style="color:#7346f3;">Grok 4.5</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>xAI가 Cursor를 인수한 뒤 첫 모델 Grok 4.5를 함께 발표했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>코딩·에이전트용으로 훈련됐고, 파라미터는 <span class="hl">1.5조 개</span>로 이전의 세 배입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>컨텍스트는 <span class="hl">50만 토큰</span>(100만까지 확장 예정), 100만 토큰당 입력 2달러·출력 6달러입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Cursor·그록 자체 서비스·오픈라우터 등에서 바로 쓸 수 있습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Latent Space</b></span><span class="handle">07-09</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="05" class="card">
+    <span class="wm">03</span>
+    <div class="top"><span class="eyebrow">SECTION 1 · MODELS</span><span class="pg">05 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">모델</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:58px; line-height:1.14; margin-top:18px;">Anthropic이 말 바꿨다<br>Fable 5, <span style="color:#7346f3;">구독으로</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>‘API 전용’이던 최상위 Claude Fable 5를 구독 플랜에 정식 포함합니다(<span class="hl">7/20</span> 시행).</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Max·팀 프리미엄은 사용 한도의 <span class="hl">50%</span>까지 씁니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Pro·팀 스탠다드는 별도 사용 크레딧과 일회성 100달러로 접근합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>배경으로 GPT-5.6 Sol·Kimi K3 같은 경쟁 모델의 등장이 함께 언급됐습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Anthropic (Simon Willison)</b></span><span class="handle">07-18</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="06" class="card">
+    <span class="wm">04</span>
+    <div class="top"><span class="eyebrow">SECTION 2 · TOOLS &amp; WORKFLOW</span><span class="pg">06 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">도구</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:58px; line-height:1.14; margin-top:18px;">Claude Code가 조용히<br>권한을 조였다 — <span style="color:#7346f3;">5개 릴리스</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>이번 주 <span class="hl">2.1.210~214</span>까지 여러 버전을 연달아 냈습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>dir/** 자동승인이 하위 디렉터리 쓰기까지 승인하던 문제를 바로잡았습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>웹검색·서브에이전트 생성에 기본 <span class="hl">상한 200</span>을 두고, worktree 격리 버그도 고쳤습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>남용 대응용 대화 종료 도구와 장시간 도구 호출 진행 알림도 추가됐습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Claude Code Changelog</b></span><span class="handle">07-13</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="07" class="card">
+    <span class="wm">05</span>
+    <div class="top"><span class="eyebrow">SECTION 2 · TOOLS &amp; WORKFLOW</span><span class="pg">07 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">도구</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:56px; line-height:1.14; margin-top:18px;">Claude가 사용 습관을<br>되짚어준다 — 포인트는 <span style="color:#7346f3;">‘뺀 것’</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>자기 Claude 사용 패턴을 <span class="hl">1·3·6·12개월</span>로 되짚는 회고 대시보드를 베타 공개했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>어떤 주제·작업에 썼는지 요약하고, 조용한 시간대·휴식 알림도 걸 수 있습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>비공개·건강·민감 대화의 원본은 빼거나 뭉뚱그린 요약으로만 노출합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Free·Pro·Max 웹·데스크톱 제공, <span class="hl">메모리 기능</span>이 켜져 있어야 리포트가 생깁니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Anthropic News</b></span><span class="handle">07-09</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="08" class="card">
+    <span class="wm">06</span>
+    <div class="top"><span class="eyebrow">SECTION 2 · TOOLS &amp; WORKFLOW</span><span class="pg">08 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">도구</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:56px; line-height:1.14; margin-top:18px;">직무가 ‘기여 방식’으로<br>재편된다 — <span style="color:#7346f3;">다섯 역할</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Claude Code 팀을 관찰해, 직무가 다섯 ‘기여 방식’으로 재편된다고 본 글입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p><span class="hl">프로토타이퍼·빌더·스위퍼·그로워·메인테이너</span> 다섯 원형입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>많은 사람이 두세 원형에 걸치며, 이 구분은 특정 직무에 묶이지 않습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>건강한 팀은 제품 단계마다 다른 조합을 필요로 합니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>X</b></span><span class="handle">06-28</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="09" class="card">
+    <span class="wm">07</span>
+    <div class="top"><span class="eyebrow">SECTION 2 · TOOLS &amp; WORKFLOW</span><span class="pg">09 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">도구</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:56px; line-height:1.14; margin-top:18px;">토큰 싸다고 싼 게 아니었다<br>Databricks <span style="color:#7346f3;">수백만 줄</span> 실측</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>수백만 줄 코드베이스에서 실제 작업으로 코딩 에이전트를 실측했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>OpenAI·Anthropic·오픈 모델이 모두 최상위에 걸쳐, 지금은 섞어 써야 최고 성능이 납니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>토큰 단가는 실제 비용의 나쁜 지표 — <span class="hl">GLM 5.2</span>는 Opus 4.8과 품질 동률에 작업당 더 쌌습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>같은 모델도 하네스에 따라 작업당 비용이 <span class="hl">2배</span> 넘게 갈렸습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>databricks.com</b></span><span class="handle">07-08</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="10" class="card">
+    <span class="wm">08</span>
+    <div class="top"><span class="eyebrow">SECTION 2 · TOOLS &amp; WORKFLOW</span><span class="pg">10 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">도구</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:58px; line-height:1.14; margin-top:18px;">매번 프롬프트 치지 마라<br>에이전트 루프 <span style="color:#7346f3;">4패턴</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>에이전트 ‘루프’를 트리거·중단 기준으로 4패턴으로 정리했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p><span class="hl">턴 기반·목표 기반·시간 기반·프로액티브</span> 넷입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>완료 기준을 <span class="hl">SKILL.md</span>에 정량적으로 적을수록 에이전트가 스스로 검증합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>리뷰엔 신선한 두 번째 에이전트를 쓰고, 고친 내용을 시스템에 인코딩하라고 권합니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>x.com</b></span><span class="handle">07-07</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="11" class="card">
+    <span class="wm">09</span>
+    <div class="top"><span class="eyebrow">SECTION 2 · TOOLS &amp; WORKFLOW</span><span class="pg">11 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">도구</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:54px; line-height:1.14; margin-top:18px;">결과가 틀렸다? 모델 말고<br>이걸 먼저 — <span style="color:#7346f3;">model vs effort</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>model은 능력을, effort는 한 요청에 쏟는 작업량을 바꾸는 다른 다이얼입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>model은 학습으로 고정된 가중치를 교체하는 것이라, 프롬프트로는 그 가중치가 바뀌지 않습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>같은 프롬프트라도 높은 effort가 낮은 것보다 최대 약 <span class="hl">7배</span> 토큰을 쓰기도 합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>정형 작업엔 작은 모델을, 미묘하고 낯선 문제엔 큰 모델을 쓰라고 권합니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>x.com</b></span><span class="handle">07-09</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="12" class="card">
+    <span class="wm">10</span>
+    <div class="top"><span class="eyebrow">SECTION 2 · TOOLS &amp; WORKFLOW</span><span class="pg">12 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">도구</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:56px; line-height:1.14; margin-top:18px;"><span style="color:#7346f3;">15시간이 30분으로</span><br>Uber가 2주 만에 배포</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>AI에 능숙한 엔지니어 30명을 도메인 전문가와 짝지어 2주 만에 업무 에이전트를 배포했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>처음 이틀은 전문가를 관찰하고, 이후 우선순위를 정해 만들고 검증한 뒤 열흘째 배포합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>2개월간 16개 기능에서 자본 배분 <span class="hl">15시간→30분</span>, 재무 보고 <span class="hl">2일→10분</span>으로 줄였습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>가장 큰 성과는 개별 작업이 아니라 워크플로우 전체를 다시 설계한 데서 나왔습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>x.com</b></span><span class="handle">07-07</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="13" class="card">
+    <span class="wm">11</span>
+    <div class="top"><span class="eyebrow">SECTION 3 · OPEN SOURCE</span><span class="pg">13 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">오픈소스</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:56px; line-height:1.14; margin-top:18px;">이제 에이전트를 떼로 굴린다<br><span style="color:#7346f3;">⭐14.9k</span> 터미널 멀티플렉서</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>터미널에서 AI 에이전트 여럿을 띄워 대기·작업·완료 상태를 한눈에 보는 멀티플렉서입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>연결을 끊어도 계속 돌고, 세션이 재시작 후에도 살아남습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Electron 없이 <span class="hl">러스트</span>로 만든 단일 실행 파일이라 기존 터미널에서 그대로 돕니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>GitHub</b></span><span class="handle">07-13</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="14" class="card">
+    <span class="wm">12</span>
+    <div class="top"><span class="eyebrow">SECTION 3 · OPEN SOURCE</span><span class="pg">14 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">오픈소스</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:54px; line-height:1.14; margin-top:18px;">자기 문서를 눈으로 보고<br>고친다 — <span style="color:#7346f3;">OfficeCLI ⭐13.8k</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>에이전트가 워드·엑셀·파워포인트를 만들고 읽고 편집하는 오픈소스 오피스 CLI입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>문서를 HTML·이미지로 그려 결과를 직접 보고 고치는 <span class="hl">render→look→fix</span> 루프를 갖췄습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p><span class="hl">350개</span> 넘는 엑셀 함수를 저장 시 자동 계산하고, 내장 MCP 서버로 문서 작업을 도구로 노출합니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>GitHub</b></span><span class="handle">07-13</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="15" class="card">
+    <span class="wm">13</span>
+    <div class="top"><span class="eyebrow">SECTION 3 · OPEN SOURCE</span><span class="pg">15 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">오픈소스</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:58px; line-height:1.14; margin-top:18px;">Claude가 이제 영상까지 본다<br><span style="color:#7346f3;">/watch 스킬 ⭐6.8k</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>영상 URL·파일 경로와 질문을 주면 자막·프레임을 뽑아 Claude가 직접 보게 하는 스킬입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>자막이 있으면 영상을 안 받고, 없으면 필요한 만큼만 받아 프레임을 뽑고 음성을 인식합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>상세도 다이얼(자막만~무제한)에 따라 <span class="hl">토큰 사용량</span>이 크게 달라집니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>GitHub</b></span><span class="handle">07-13</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="16" class="card">
+    <span class="wm">14</span>
+    <div class="top"><span class="eyebrow">SECTION 4 · TEAMS &amp; PEOPLE</span><span class="pg">16 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">팀·사람</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:56px; line-height:1.14; margin-top:18px;">에이전트 시대의 정답은<br><span style="color:#7346f3;">‘옛날 팀 기본기’</span>였다</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>사람과 에이전트가 한 업무 공간에서 협업하며 얻은 교훈을 정리했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>에이전트가 슬랙 같은 공간에 자기 계정으로 상주하며 여러 사람과 협업합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>문서를 폭넓게 공개하고, 역할·도구를 정하고, <span class="hl">‘북극성’</span>(공동 목표)으로 능동성을 끌어냅니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>신뢰는 시간을 두고 검증하며 넓히고, 한 에이전트가 일하면 다른 에이전트가 점검합니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Claude Blog</b></span><span class="handle">06-24</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="17" class="card">
+    <span class="wm">15</span>
+    <div class="top"><span class="eyebrow">SECTION 4 · TEAMS &amp; PEOPLE</span><span class="pg">17 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">팀·사람</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:54px; line-height:1.14; margin-top:18px;">13명 팀이 <span style="color:#7346f3;">4~6명 pod</span>로<br>Instagram 총괄이 그린 팀</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Instagram 총괄 인터뷰로, 2026년 Meta 제품팀 구조 변화를 다룹니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>13명 규모 표준 팀이 엔지니어 <span class="hl">4~6명 pod</span>로 바뀌고, 중심엔 product staff가 섰습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>과거 코드 작성에 쓰던 시간을 이제 대부분 계획·리뷰에 씁니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>전략은 사람이 정하고 AI엔 피드백만 받으며, 좋은 리더는 <span class="hl">‘큐레이터’</span>에 가깝다고 봅니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>lennysnewsletter</b></span><span class="handle">07-09</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="18" class="card">
+    <span class="wm">16</span>
+    <div class="top"><span class="eyebrow">SECTION 4 · TEAMS &amp; PEOPLE</span><span class="pg">18 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">팀·사람</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:52px; line-height:1.14; margin-top:18px;">개발자 5,920명이 갈렸다<br>진짜 두려움은 <span style="color:#7346f3;">해고가 아니었다</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>테크워커 5,920명을 조사한 설문입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>AI로 ‘증폭’ <span class="hl">49%</span>·‘불안’ <span class="hl">14%</span>로 갈렸고, 감정이 커리어 낙관을 가장 크게 좌우했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>심각한 번아웃은 <span class="hl">44.7%→55.7%</span>, 큰 두려움은 해고보다 ‘같은 급여로 더 많은 일’이었습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>디자이너·리서처가 가장 불안했고, 매니저 효과성이 번아웃의 최강 동인이었습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>lennysnewsletter</b></span><span class="handle">07-07</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="19" class="card">
+    <span class="wm">17</span>
+    <div class="top"><span class="eyebrow">SECTION 5 · BENCHMARK</span><span class="pg">19 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">실측</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:56px; line-height:1.14; margin-top:18px;">Opus 4.8이 루빅스 큐브 <span style="color:#7346f3;">0/5</span><br>12개 모델 정면 비교</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>12개 모델에 같은 앱 4개(미로·루빅스 큐브·계산기·생명 게임)를 각 5회씩 만들게 했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>레이캐스터 미로는 GPT-5.6 Sol·Grok 4.5가 모두 <span class="hl">5/5</span>, Grok이 더 싸고 빨랐습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>3D 루빅스 큐브는 Claude Fable 5만 <span class="hl">5/5</span>, Opus 4.8은 한 번도 성공하지 못했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>예제가 풍부한 과제엔 오픈웨이트도 잘 버텼고, 최신 플래그십이 모든 과제를 이기진 않았습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>tryai.dev (GeekNews)</b></span><span class="handle">07-09</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="20" class="card">
+    <span class="wm">18</span>
+    <div class="top"><span class="eyebrow">SECTION 5 · SECURITY</span><span class="pg">20 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">보안</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:54px; line-height:1.14; margin-top:18px;">이슈 하나로 <span style="color:#7346f3;">private repo</span>가<br>털렸다 — 프롬프트 인젝션</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>보안업체 Noma가 GitHub 에이전트 워크플로우를 프롬프트 인젝션으로 뚫은 연구를 공개했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>공개 repo에 이슈 하나를 만들고 본문에 명령을 숨기면, 에이전트가 정상 지시로 해석해 실행합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>cross-repo 읽기 권한이 있으면 <span class="hl">private repo</span> 내용을 공개 위치에 게시할 수 있습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>자격 증명·기술 없이 성립했고, <span class="hl">‘Additionally’</span> 문구가 안전장치를 우회했습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Noma Security Labs (HN)</b></span><span class="handle">07-06</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="21" class="card">
+    <span class="wm">19</span>
+    <div class="top"><span class="eyebrow">SECTION 5 · POLICY</span><span class="pg">21 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">정책</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:54px; line-height:1.14; margin-top:18px;">안전하게 만들수록 멀쩡한<br>요청도 막힌다 — <span style="color:#7346f3;">Anthropic 인정</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Anthropic이 Claude Fable 5의 사이버 보안 요청 분류를 공개했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>금지·고위험·저위험·무해 <span class="hl">네 단계</span>로 나눕니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>랜섬웨어·멀웨어는 전면 차단, 취약점 식별·공개정보 조사는 안전 마진을 두고 대부분 허용합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>안전 마진을 키운 대가로 무해한 요청까지 잘못 막히는 경우가 늘었다는 점도 인정했습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Anthropic News</b></span><span class="handle">07-02</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="22" class="card">
+    <span class="wm" style="font-size:520px;">#5</span>
+    <div class="top"><span class="eyebrow">— THE END</span><span class="pg">22 / 22</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">마무리</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:82px; line-height:1.08; margin-top:24px;">끌리는 제목이<br>있었나요<span style="color:#7346f3;">?</span></h2>
+      <div class="rule" style="width:300px;"></div>
+      <div style="margin-top:44px; display:flex; flex-direction:column; gap:22px; max-width:880px;">
+        <p style="font-weight:500; font-size:36px; line-height:1.55; color:#3a3550;">원문 링크는 <span class="hl">위키 트렌드 노트 #5</span>에 있습니다.</p>
+        <p style="font-weight:500; font-size:36px; line-height:1.55; color:#3a3550;">판단은 각자 몫 — 무엇을 볼지는 직접 고르세요.</p>
+      </div>
+      <div style="margin-top:48px;">
+        <span style="display:inline-flex; align-items:center; gap:12px; background:linear-gradient(120deg,#7346f3,#c644d6); color:#fff; font-weight:700; font-size:32px; padding:20px 36px; border-radius:14px;">위키에서 전체 보기 →</span>
+      </div>
+    </div>
+    <div class="foot"><span class="src">다음 회차 <b>#6</b> 준비 중</span><span class="handle">A3 TF · AI 트렌드 노트</span></div>
+  </section></div>
+</div>
+<button class="nav" id="prev" aria-label="이전">‹</button>
+<button class="nav" id="next" aria-label="다음">›</button>
+<div class="hud"><b id="cur">01</b> / 22</div>
+<div class="hint">← 밀어서 넘기기 →</div>
+
+  <script>
+  (function(){
+    var deck=document.querySelector('.deck'), cur=document.getElementById('cur'),
+        bar=document.getElementById('bar'), hint=document.querySelector('.hint'), N=22;
+    function fit(){
+      var vw=window.innerWidth, vh=window.innerHeight, root=document.documentElement.style, z, ch, cs;
+      if(vh>=vw){ z=vw*0.97/1080; cs=vh*0.72; ch=cs/z; }        // 세로(모바일): 포트레이트로 크게(여백=패딩감)
+      else { z=Math.min(vw,vh)*0.94/1080; ch=1080; cs=1080*z; } // 가로(데스크톱): 정사각 맞춤
+      root.setProperty('--z', z);
+      root.setProperty('--ch', ch+'px');
+      root.setProperty('--cs', cs+'px');
+    }
+    function pad(n){return (n<10?'0':'')+n;}
+    function upd(){
+      var i=Math.round(deck.scrollLeft/deck.clientWidth);
+      if(i<0)i=0; if(i>N-1)i=N-1;
+      cur.textContent=pad(i+1);
+      bar.style.width=((i+1)/N*100)+'%';
+    }
+    fit(); upd();
+    deck.addEventListener('scroll', function(){ upd(); if(hint&&!hint.classList.contains('gone'))hint.classList.add('gone'); }, {passive:true});
+    window.addEventListener('resize', function(){ fit(); upd(); });
+    window.addEventListener('orientationchange', function(){ setTimeout(function(){fit();upd();},200); });
+    if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+    setTimeout(fit,400);
+    window.addEventListener('keydown', function(e){
+      if(e.key==='ArrowRight'||e.key===' ') { deck.scrollBy({left:deck.clientWidth,behavior:'smooth'}); e.preventDefault(); }
+      if(e.key==='ArrowLeft') deck.scrollBy({left:-deck.clientWidth,behavior:'smooth'});
+    });
+    document.getElementById('next').onclick=function(){ deck.scrollBy({left:deck.clientWidth,behavior:'smooth'}); };
+    document.getElementById('prev').onclick=function(){ deck.scrollBy({left:-deck.clientWidth,behavior:'smooth'}); };
+    setTimeout(function(){ if(hint) hint.classList.add('gone'); }, 3500);
+  })();
+  </script>
+</body>
+</html>
