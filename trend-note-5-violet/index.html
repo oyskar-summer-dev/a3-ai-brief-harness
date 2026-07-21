@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#e8e8ed">
-<title>A3 TF AI 트렌드 노트 #5 — 카드뉴스</title>
+<title>A3 TF AI 트렌드 노트 — 카드뉴스</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,7 +36,7 @@
 <style>
   html,body{height:100%;margin:0;background:#e8e8ed;overscroll-behavior:none;word-break:keep-all;}
   body{display:flex;align-items:center;justify-content:center;height:100dvh;overflow:hidden;}
-  /* 좌우 스와이프 덱 — 높이는 카드 크기만큼, 화면 중앙에 배치 */
+  /* 좌우 스와이프 덱 — 높이는 카드 크기만큼, 화면 중앙 배치 */
   .deck{display:flex;width:100vw;height:var(--cs,60vh);
         overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;
         -webkit-overflow-scrolling:touch;scrollbar-width:none;}
@@ -433,7 +433,7 @@
         bar=document.getElementById('bar'), hint=document.querySelector('.hint'), N=22;
     function fit(){
       var vw=window.innerWidth, vh=window.innerHeight, root=document.documentElement.style, z, ch, cs;
-      if(vh>=vw){ z=vw*0.97/1080; cs=vh*0.72; ch=cs/z; }        // 세로(모바일): 포트레이트로 크게(여백=패딩감)
+      if(vh>=vw){ z=vw*0.97/1080; cs=vh*0.72; ch=cs/z; }        // 세로(모바일): 포트레이트로 크게
       else { z=Math.min(vw,vh)*0.94/1080; ch=1080; cs=1080*z; } // 가로(데스크톱): 정사각 맞춤
       root.setProperty('--z', z);
       root.setProperty('--ch', ch+'px');
