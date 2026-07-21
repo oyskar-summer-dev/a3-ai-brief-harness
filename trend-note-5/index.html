@@ -48,8 +48,8 @@
   .slide{flex:0 0 100vw;width:100vw;height:100%;
          display:flex;align-items:center;justify-content:center;
          scroll-snap-align:center;scroll-snap-stop:always;}
-  /* 고정 1080 카드를 zoom 으로 레이아웃째 축소 → 정렬 안 깨짐 (JS가 --z 설정) */
-  .slide .card{zoom:var(--z,.4);flex:none;}
+  /* 고정 1080 카드를 zoom 으로 레이아웃째 축소 → 정렬 안 깨짐 (JS가 --z·--ch 설정) */
+  .slide .card{zoom:var(--z,.4);height:var(--ch,1080px);flex:none;}
   /* 상단 진행 바 */
   .bar-wrap{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,.06);z-index:10;}
   #bar{height:100%;width:4.5%;background:#c15f3c;transition:width .25s ease;}
@@ -445,10 +445,12 @@
     var deck=document.querySelector('.deck'), cur=document.getElementById('cur'),
         bar=document.getElementById('bar'), hint=document.querySelector('.hint'), N=22;
     function fit(){
-      var cs=Math.min(window.innerWidth, window.innerHeight)*0.94;
-      var root=document.documentElement.style;
+      var vw=window.innerWidth, vh=window.innerHeight, root=document.documentElement.style, z, ch, cs;
+      if(vh>=vw){ z=vw*0.97/1080; cs=vh*0.72; ch=cs/z; }        // 세로(모바일): 포트레이트로 크게(여백=패딩감)
+      else { z=Math.min(vw,vh)*0.94/1080; ch=1080; cs=1080*z; } // 가로(데스크톱): 정사각 맞춤
+      root.setProperty('--z', z);
+      root.setProperty('--ch', ch+'px');
       root.setProperty('--cs', cs+'px');
-      root.setProperty('--z', (cs/1080));
     }
     function pad(n){return (n<10?'0':'')+n;}
     function upd(){
