@@ -53,16 +53,6 @@
   /* 상단 진행 바 */
   .bar-wrap{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,.06);z-index:10;}
   #bar{height:100%;width:4.5%;background:#c15f3c;transition:width .25s ease;}
-  /* 상단 라벨 */
-  .brand{position:fixed;top:16px;left:0;right:0;text-align:center;z-index:10;
-         font-family:'Newsreader',serif;font-style:italic;font-size:15px;color:#a99f8c;pointer-events:none;}
-  /* 하단 카운터 */
-  .hud{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:10;
-       font-family:'Newsreader',serif;font-size:16px;letter-spacing:.06em;color:#8a8172;
-       background:rgba(255,255,255,.82);backdrop-filter:blur(6px);
-       padding:7px 16px;border-radius:999px;box-shadow:0 4px 16px rgba(0,0,0,.10);
-       font-variant-numeric:tabular-nums;}
-  .hud b{color:#c15f3c;font-weight:500;}
   /* 좌우 넘김 버튼 (데스크톱/마우스 전용) */
   .nav{position:fixed;top:50%;transform:translateY(-50%);z-index:11;
        width:48px;height:48px;border:none;border-radius:50%;cursor:pointer;
@@ -80,7 +70,6 @@
 </head>
 <body>
 <div class="bar-wrap"><div id="bar"></div></div>
-<div class="brand">A3 TF · AI 트렌드 노트 #5</div>
 <div class="deck">
 <div class="slide"><section data-screen-label="01" class="card">
     <span class="wm" style="font-size:460px; right:36px; bottom:-40px; color:rgba(199,95,60,.08);">5</span>
@@ -437,7 +426,6 @@
 </div>
 <button class="nav" id="prev" aria-label="이전">‹</button>
 <button class="nav" id="next" aria-label="다음">›</button>
-<div class="hud"><b id="cur">01</b> / 22</div>
 <div class="hint">← 밀어서 넘기기 →</div>
 
   <script>
@@ -456,7 +444,7 @@
     function upd(){
       var i=Math.round(deck.scrollLeft/deck.clientWidth);
       if(i<0)i=0; if(i>N-1)i=N-1;
-      cur.textContent=pad(i+1);
+      if(cur)cur.textContent=pad(i+1);
       bar.style.width=((i+1)/N*100)+'%';
     }
     fit(); upd();
