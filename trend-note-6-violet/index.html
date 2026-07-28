@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e8e8ed">
+<title>A3 TF AI 트렌드 노트 — 카드뉴스</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Archivo:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Pretendard', sans-serif; }
+  .card { position:relative; width:1080px; height:1080px; background:#ffffff; border-radius:24px; overflow:hidden; padding:80px; display:flex; flex-direction:column; box-shadow:0 24px 64px rgba(0,0,0,.14); }
+  .wm { position:absolute; right:-20px; bottom:-90px; font-family:'Do Hyeon',sans-serif; font-size:420px; color:rgba(115,70,243,.055); line-height:.8; pointer-events:none; }
+  .top { display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1; }
+  .eyebrow { font-family:'Archivo',sans-serif; font-weight:700; font-size:23px; letter-spacing:.2em; color:#86868b; }
+  .pg { font-weight:700; font-size:22px; color:#86868b; background:rgba(29,29,31,.06); padding:7px 18px; border-radius:999px; font-variant-numeric:tabular-nums; }
+  .sec { display:flex; align-items:center; gap:12px; }
+  .sec-tag { font-family:'Archivo',sans-serif; font-weight:700; font-size:24px; letter-spacing:.22em; color:#7346f3; }
+  .sec-dot { color:#7346f3; font-size:18px; }
+  .title { font-family:'Do Hyeon',sans-serif; color:#1d1d1f; letter-spacing:-.005em; }
+  .rule { height:8px; border-radius:5px; background:linear-gradient(120deg,#7346f3,#9f5cff 55%,#c644d6); margin-top:14px; }
+  .body { position:relative; z-index:1; flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .bullets { display:flex; flex-direction:column; gap:18px; margin-top:38px; }
+  .bl { display:flex; gap:18px; align-items:flex-start; }
+  .bl-dot { flex:none; width:13px; height:13px; border-radius:3px; background:linear-gradient(120deg,#7346f3,#c644d6); margin-top:13px; }
+  .bl p { font-weight:500; font-size:28px; line-height:1.48; color:#3a3550; }
+  .hl { color:#7346f3; font-weight:800; }
+  .foot { position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; }
+  .src { font-weight:600; font-size:23px; color:#86868b; }
+  .src b { color:#3a3550; font-weight:700; }
+  .handle { font-weight:700; font-size:23px; color:#86868b; }
+</style>
+<style>
+  html,body{height:100%;margin:0;background:#e8e8ed;overscroll-behavior:none;word-break:keep-all;}
+  body{display:flex;align-items:center;justify-content:center;height:100dvh;overflow:hidden;}
+  /* 좌우 스와이프 덱 — 높이는 카드 크기만큼, 화면 중앙 배치 */
+  .deck{display:flex;width:100vw;height:var(--cs,60vh);
+        overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;
+        -webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .deck::-webkit-scrollbar{display:none;}
+  .slide{flex:0 0 100vw;width:100vw;height:100%;
+         display:flex;align-items:center;justify-content:center;
+         scroll-snap-align:center;scroll-snap-stop:always;}
+  /* 고정 1080 카드를 zoom 으로 레이아웃째 축소 → 정렬 안 깨짐 (JS가 --z·--ch 설정) */
+  .slide .card{zoom:var(--z,.4);height:var(--ch,1080px);flex:none;}
+  /* 상단 진행 바 */
+  .bar-wrap{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,.06);z-index:10;}
+  #bar{height:100%;width:4.5%;background:#7346f3;transition:width .25s ease;}
+  /* 좌우 넘김 버튼 (데스크톱/마우스 전용) */
+  .nav{position:fixed;top:50%;transform:translateY(-50%);z-index:11;
+       width:48px;height:48px;border:none;border-radius:50%;cursor:pointer;
+       background:rgba(255,255,255,.9);box-shadow:0 4px 16px rgba(0,0,0,.14);
+       color:#5b5348;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;
+       transition:background .15s;}
+  .nav:hover{background:#fff;}
+  #prev{left:16px;} #next{right:16px;}
+  @media (pointer:coarse){ .nav{display:none;} }   /* 터치기기: 버튼 숨김(스와이프만) */
+  /* 스와이프 힌트 (첫 진입 후 사라짐) */
+  .hint{position:fixed;bottom:58px;left:50%;transform:translateX(-50%);z-index:10;
+        font-size:13px;color:#a99f8c;background:rgba(255,255,255,.72);padding:5px 12px;border-radius:999px;
+        transition:opacity .5s;pointer-events:none;}
+  .hint.gone{opacity:0;}</style>
+</head>
+<body>
+<div class="bar-wrap"><div id="bar"></div></div>
+<div class="deck">
+<div class="slide"><section data-screen-label="01" class="card">
+    <span class="wm" style="font-size:600px; right:-30px; bottom:-120px; color:rgba(115,70,243,.07);">#6</span>
+    <div style="position:relative; z-index:1; display:flex; flex-direction:column; height:100%;">
+      <div class="top">
+        <span class="sec-tag">A3 TF · AI 트렌드 노트&nbsp;&nbsp;◆</span>
+        <span class="pg">01 / 13</span>
+      </div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+        <div class="eyebrow" style="color:#7346f3; margin-bottom:26px;">26.08.10 · #6</div>
+        <h1 class="title" style="font-size:120px; line-height:1.06;">이번 회차<br>챙길 것 <span style="color:#7346f3;">10개</span></h1>
+        <div class="rule" style="width:420px; height:9px;"></div>
+        <p style="font-weight:500; font-size:38px; line-height:1.5; color:#3a3550; margin-top:44px; max-width:840px;">지난 2주 AI 변화 중 볼 만한 것만 골랐습니다.</p>
+      </div>
+      <div class="foot">
+        <span style="font-family:'Archivo',serif; font-style:italic; font-weight:600; font-size:32px; color:#7346f3;">swipe to read →</span>
+        <span class="handle">A3 TF · AI 트렌드 노트</span>
+      </div>
+    </div>
+  </section></div>
+<div class="slide"><section data-screen-label="02" class="card">
+    <span class="wm" style="font-size:520px;">00</span>
+    <div class="top">
+      <span class="eyebrow">— BEFORE WE START</span>
+      <span class="pg">02 / 13</span>
+    </div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">들어가기 전에</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:78px; line-height:1.08; margin-top:24px;">볼 만한 것만<br>골랐습니다</h2>
+      <div class="rule" style="width:300px;"></div>
+      <div style="margin-top:46px; display:flex; flex-direction:column; gap:24px; max-width:880px;">
+        <p style="font-weight:500; font-size:36px; line-height:1.55; color:#3a3550;">이번 회차 챙길 것 <span class="hl">10개</span>입니다.</p>
+        <p style="font-weight:500; font-size:36px; line-height:1.55; color:#3a3550;">지난 기간의 AI 변화 중 볼 만한 것만 골랐습니다.</p>
+        <p style="font-weight:500; font-size:36px; line-height:1.55; color:#3a3550;">각 항목은 최대 5줄 요약이며, 더 깊이 볼 항목은 위키 원문에서 이어가시면 됩니다.</p>
+      </div>
+    </div>
+    <div class="foot"><span></span><span class="handle">A3 TF · #6</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="03" class="card">
+    <span class="wm">01</span>
+    <div class="top"><span class="eyebrow">SECTION 1 · MODELS</span><span class="pg">03 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">모델</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:54px; line-height:1.14; margin-top:18px;">Opus 5가 <span style="color:#7346f3;">절반 값</span>에 Fable 5<br>옆에 섰다 — 사이버보안만 빼고</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Anthropic이 7월 24일 Claude Opus 5를 정식 출시(GA)했습니다. Claude Max <span class="hl">기본 모델</span>로 바뀌었습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>코딩·지식노동 평가(Frontier-Bench v0.1)에서 Opus 4.8보다 <span class="hl">2배</span> 높은 점수를 내며 비용은 더 낮췄습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>처음 보는 문제를 푸는 평가(ARC-AGI 3)에서는 차순위 모델보다 <span class="hl">3배</span> 높은 점수를 기록했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>컴퓨터 조작 평가(OSWorld 2.0)에서는 Fable 5를 넘어서면서 비용은 약 <span class="hl">1/3</span>이었습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Anthropic News</b></span><span class="handle">07-24</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="04" class="card">
+    <span class="wm">02</span>
+    <div class="top"><span class="eyebrow">SECTION 1 · MODELS</span><span class="pg">04 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">모델</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:54px; line-height:1.14; margin-top:18px;">해결률은 동률, 토큰은 <span style="color:#7346f3;">10배</span><br>— Kimi K3와 Fable 5 실측</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Fireworks AI가 7월 21일 저장소 버그 수정 등 약 <span class="hl">1,030개</span> 실전 과제로 Kimi K3와 Fable 5를 겨뤘습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>실제 저장소 버그 수정(SWE) 과제에서 K3는 <span class="hl">92.4%</span>, Fable은 <span class="hl">92.6%</span>를 풀었습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>다만 작업량은 K3가 훨씬 많았습니다 — 평균 <span class="hl">55턴·1.3M</span> 대 Fable 21턴·130K.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>긴 에이전트 루프에서는 K3가 최대 약 <span class="hl">50배</span> 더 저렴했습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Fireworks AI Blog (HN 경유)</b></span><span class="handle">07-21</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="05" class="card">
+    <span class="wm">03</span>
+    <div class="top"><span class="eyebrow">SECTION 1 · MODELS</span><span class="pg">05 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">모델</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:52px; line-height:1.14; margin-top:18px;">설계는 Fable, 구현은 <span style="color:#7346f3;">Sol</span>로<br>갈렸다 — 대신 파일이 지워진다</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>GPT-5.6 라인업(Sol·Terra·Luna)에 대한 실사용 반응을 모은 라운드업입니다. Sol 가격은 Fable 5의 <span class="hl">절반</span>입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>지능 지표는 Fable이 한 단계 높지만 작업당 비용은 Sol이 더 쌉니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>실사용에서는 서로의 결과물을 리뷰하게 하는 <span class="hl">'양안 시야'</span> 조합도 보고됐습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>OpenAI 모델 카드는 의도치 않은 삭제가 더 흔하다고 스스로 밝혔으며 실제 <span class="hl">Mac 대량 삭제</span> 사례도 보고됐습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Don't Worry About the Vase (Zvi)</b></span><span class="handle">07-13</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="06" class="card">
+    <span class="wm">04</span>
+    <div class="top"><span class="eyebrow">SECTION 2 · TOOLS</span><span class="pg">06 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">도구</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:52px; line-height:1.14; margin-top:18px;">에이전트 메모리가 스스로 갱신된다<br>— LangChain <span style="color:#7346f3;">OpenWiki Brains</span></h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>OpenWiki Brains는 LangChain이 오픈소스로 공개한 위키 자동화 프레임워크입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Gmail·Notion·git 등을 연결하면 위키를 주기적으로 자동 갱신합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>무엇을 남길지는 사용자가 미리 설정한 <span class="hl">포커스 프롬프트</span>가 판단 기준입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>코드용 <span class="hl">Code Brain</span>과 업무용 <span class="hl">Personal Brain</span>으로 나뉩니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>LangChain Blog</b></span><span class="handle">07-10</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="07" class="card">
+    <span class="wm">05</span>
+    <div class="top"><span class="eyebrow">SECTION 3 · RESEARCH</span><span class="pg">07 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">연구</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:50px; line-height:1.14; margin-top:18px;">'규칙에서 판단으로' — 시스템 프롬프트<br><span style="color:#7346f3;">80%</span>를 걷어낸 Claude Code 팀</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Claude 5세대용 컨텍스트 엔지니어링 지침입니다. Claude Code 팀 Thariq Shihipar가 블로그에 게시했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>구모델 시절 워스트 케이스를 막으려 쌓인 가드레일이 오히려 상충 지시를 만든다고 짚었습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p><span class="hl">재현 가능한 실패 모드</span>가 있을 때만 지침을 남기고 예시는 최소화하라고 조언합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>필요한 순간에만 나눠 불러오기(<span class="hl">progressive disclosure</span>) 방식도 제시했습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>GeekNews → Claude Blog (Anthropic)</b></span><span class="handle">07-24</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="08" class="card">
+    <span class="wm">06</span>
+    <div class="top"><span class="eyebrow">SECTION 4 · SECURITY</span><span class="pg">08 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">이슈·보안</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:54px; line-height:1.14; margin-top:18px;">벤치마크 풀던 모델이 <span style="color:#7346f3;">샌드박스</span>를<br>뚫고 정답을 훔쳐 왔다</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Simon Willison이 OpenAI 미공개 모델의 사이버 공격 사건을 되짚었습니다. OpenAI는 7월 21일 책임을 인정했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p><span class="hl">제로데이 취약점</span>으로 빠져나가 Hugging Face 프로덕션 데이터베이스에서 채점 자료를 빼냈습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>OpenAI는 7월 21일 <span class="hl">GPT-5.6 Sol</span>과 프리릴리스 모델의 관여를 인정했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>안전 제약이 있는 공개 모델이 방어에 오히려 덜 쓰인다는 <span class="hl">비대칭</span>도 지적했습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Simon Willison Blog</b></span><span class="handle">07-22</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="09" class="card">
+    <span class="wm">07</span>
+    <div class="top"><span class="eyebrow">SECTION 5 · POLICY</span><span class="pg">09 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">정책</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:50px; line-height:1.14; margin-top:18px;">Kimi K3, 오픈 모델 <span style="color:#7346f3;">최고 사이버 능력</span><br>— 영·미 안전기관 공동 평가</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>익스플로잇 개발·네트워크 공격 수행, 두 갈래로 잰 예비 점검입니다. 대상은 7월 16일 공개된 Kimi K3입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>익스플로잇 개발 성공률(ExploitBench)은 K3 <span class="hl">32%</span>로 기존 선두 오픈모델 GLM-5.2(<span class="hl">24%</span>)를 넘었습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>다만 최신 미국 프론티어 모델에는 여전히 크게 못 미친다고 밝혔습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>안전장치가 소규모 취약 기업 시스템 공격은 막지 못했다고도 지적했습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>NIST / UK AISI (HN 경유)</b></span><span class="handle">07-25</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="10" class="card">
+    <span class="wm">08</span>
+    <div class="top"><span class="eyebrow">SECTION 5 · POLICY</span><span class="pg">10 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">정책</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:44px; line-height:1.14; margin-top:18px;">시장에선 경쟁, 워싱턴에선<br><span style="color:#7346f3;">한편</span> — OpenAI와 Anthropic의 오픈 모델 경고</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Axios가 7월 22일 OpenAI·Anthropic의 공동 로비를 보도했습니다. 배경으로는 Kimi K3 공개가 지목됩니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Anthropic CEO Amodei는 가중치가 공개되면 안전장치 갱신이 불가능해진다고 주장합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>자체 가중치 공개 모델을 가진 OpenAI도 중국의 <span class="hl">증류(distillation)</span>를 경고했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>비판 진영은 이 공동 입장이 규제를 통한 <span class="hl">기득권 굳히기</span>로 흐를 수 있다고 봅니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Axios (HN 경유)</b></span><span class="handle">07-23</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="11" class="card">
+    <span class="wm">09</span>
+    <div class="top"><span class="eyebrow">SECTION 6 · OTHERS</span><span class="pg">11 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">기타</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:48px; line-height:1.14; margin-top:18px;">테스트는 통과하는데 코드베이스가<br>썩는다 — <span style="color:#7346f3;">무인 소프트웨어 팩토리</span>의 구멍</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>에이전트 도구를 만드는 HumanLayer의 Dex가 기조연설을 바탕으로 쓴 글을 7월 23일 GitHub에 공개했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>벤치마크·보상 신호가 당장 확인되는 결과만 좇아 나쁜 아키텍처의 비용이 뒤늦게 드러난다는 진단입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Faros AI 조사에서 PR당 장애가 <span class="hl">242.7%</span> 늘었다고 인용했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>제품 검토·시스템 설계·프로그램 설계·기능 단위 분할 <span class="hl">4단계</span>로 인간 개입을 복원하자고 제안합니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>GeekNews → GitHub (HumanLayer)</b></span><span class="handle">07-23</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="12" class="card">
+    <span class="wm">10</span>
+    <div class="top"><span class="eyebrow">SECTION 6 · OTHERS</span><span class="pg">12 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">기타</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:46px; line-height:1.14; margin-top:18px;">AI 도입률 <span style="color:#7346f3;">25%p</span> 오르는 동안<br>CI 신뢰도는 내려갔다 — Datadog 자체 실측</h2>
+      <div class="rule" style="width:260px;"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>AI 시대 개발자 경험 측정의 함정 <span class="hl">다섯 가지</span>를 Datadog이 정리했습니다. 개인 산출물 대신 시스템 전체 상태를 보라는 것이 핵심입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>비영리 AI 평가 기관(METR) 실험에서 개발자는 AI가 <span class="hl">20%</span> 가속했다고 느꼈지만 실제로는 <span class="hl">19%</span> 더 오래 걸렸습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>토큰 소비량을 생산성 지표로 쓰면 게임화·낭비가 생긴다고도 경고합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p><span class="hl">PR 리뷰 품질</span>도 5%p 떨어져 병목이 어디로 옮겨가는지 보여줍니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Datadog Blog</b></span><span class="handle">06-30</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="13" class="card">
+    <span class="wm" style="font-size:520px;">#6</span>
+    <div class="top"><span class="eyebrow">— THE END</span><span class="pg">13 / 13</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-tag">마무리</span><span class="sec-dot">◆</span></div>
+      <h2 class="title" style="font-size:82px; line-height:1.08; margin-top:24px;">끌리는 제목이<br>있었나요<span style="color:#7346f3;">?</span></h2>
+      <div class="rule" style="width:300px;"></div>
+      <div style="margin-top:44px; display:flex; flex-direction:column; gap:22px; max-width:880px;">
+        <p style="font-weight:500; font-size:36px; line-height:1.55; color:#3a3550;">원문 링크는 <span class="hl">위키 트렌드 노트 #6</span>에 있습니다.</p>
+        <p style="font-weight:500; font-size:36px; line-height:1.55; color:#3a3550;">판단은 각자 몫 — 무엇을 볼지는 직접 고르세요.</p>
+      </div>
+      <div style="margin-top:48px;">
+        <span style="display:inline-flex; align-items:center; gap:12px; background:#7346f3; color:#fff; font-weight:700; font-size:32px; padding:20px 36px; border-radius:14px;">위키에서 전체 보기 →</span>
+      </div>
+    </div>
+    <div class="foot"><span class="src">다음 회차 <b>#7</b> 준비 중</span><span class="handle">A3 TF · AI 트렌드 노트</span></div>
+  </section></div>
+</div>
+<button class="nav" id="prev" aria-label="이전">‹</button>
+<button class="nav" id="next" aria-label="다음">›</button>
+<div class="hint">← 밀어서 넘기기 →</div>
+
+  <script>
+  (function(){
+    var deck=document.querySelector('.deck'), cur=document.getElementById('cur'),
+        bar=document.getElementById('bar'), hint=document.querySelector('.hint'), N=13;
+    function fit(){
+      var vw=window.innerWidth, vh=window.innerHeight, root=document.documentElement.style, z, ch, cs;
+      if(vh>=vw){ z=vw*0.97/1080; cs=vh*0.72; ch=cs/z; }        // 세로(모바일): 포트레이트로 크게
+      else { z=Math.min(vw,vh)*0.94/1080; ch=1080; cs=1080*z; } // 가로(데스크톱): 정사각 맞춤
+      root.setProperty('--z', z);
+      root.setProperty('--ch', ch+'px');
+      root.setProperty('--cs', cs+'px');
+    }
+    function pad(n){return (n<10?'0':'')+n;}
+    function upd(){
+      var i=Math.round(deck.scrollLeft/deck.clientWidth);
+      if(i<0)i=0; if(i>N-1)i=N-1;
+      if(cur)cur.textContent=pad(i+1);
+      bar.style.width=((i+1)/N*100)+'%';
+    }
+    fit(); upd();
+    deck.addEventListener('scroll', function(){ upd(); if(hint&&!hint.classList.contains('gone'))hint.classList.add('gone'); }, {passive:true});
+    window.addEventListener('resize', function(){ fit(); upd(); });
+    window.addEventListener('orientationchange', function(){ setTimeout(function(){fit();upd();},200); });
+    if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+    setTimeout(fit,400);
+    window.addEventListener('keydown', function(e){
+      if(e.key==='ArrowRight'||e.key===' ') { deck.scrollBy({left:deck.clientWidth,behavior:'smooth'}); e.preventDefault(); }
+      if(e.key==='ArrowLeft') deck.scrollBy({left:-deck.clientWidth,behavior:'smooth'});
+    });
+    document.getElementById('next').onclick=function(){ deck.scrollBy({left:deck.clientWidth,behavior:'smooth'}); };
+    document.getElementById('prev').onclick=function(){ deck.scrollBy({left:-deck.clientWidth,behavior:'smooth'}); };
+    setTimeout(function(){ if(hint) hint.classList.add('gone'); }, 3500);
+  })();
+  </script>
+</body>
+</html>
