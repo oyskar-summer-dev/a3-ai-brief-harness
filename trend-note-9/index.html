@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f0eee6">
+<title>A3 TF AI 트렌드 노트 — 카드뉴스</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Pretendard', sans-serif; }
+  a { color:#c15f3c; }
+  a:hover { color:#a94e2e; }
+  .card { position:relative; width:1080px; height:1080px; background:#faf9f5; border:1px solid #e6e1d6; border-radius:20px; overflow:hidden; padding:82px; display:flex; flex-direction:column; box-shadow:0 20px 54px rgba(60,50,32,.10); }
+  .wm { position:absolute; right:44px; bottom:8px; font-family:'Newsreader',serif; font-size:340px; color:rgba(199,95,60,.07); line-height:.8; pointer-events:none; font-weight:400; }
+  .top { display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1; }
+  .eyebrow { font-family:'Newsreader',serif; font-style:italic; font-weight:400; font-size:27px; letter-spacing:.01em; color:#a99f8c; }
+  .pg { font-family:'Newsreader',serif; font-weight:400; font-size:25px; color:#a99f8c; font-variant-numeric:tabular-nums; }
+  .sec { display:flex; align-items:center; gap:14px; }
+  .sec-tag { font-weight:700; font-size:22px; letter-spacing:.02em; color:#c15f3c; }
+  .sec-line { width:34px; height:2px; background:#d9a48f; }
+  .title { font-family:'Gowun Batang',serif; font-weight:700; color:#26241f; letter-spacing:-.01em; }
+  .rule { width:72px; height:3px; background:#c15f3c; border-radius:2px; margin-top:26px; }
+  .body { position:relative; z-index:1; flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .bullets { display:flex; flex-direction:column; gap:20px; margin-top:40px; }
+  .bl { display:flex; gap:18px; align-items:flex-start; }
+  .bl-dot { flex:none; width:9px; height:9px; border-radius:50%; background:#c15f3c; margin-top:13px; }
+  .bl p { font-weight:450; font-size:24px; line-height:1.5; color:#413c33; }
+  .hl { color:#c15f3c; font-weight:700; }
+  .foot { position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; }
+  .src { font-weight:500; font-size:23px; color:#a99f8c; }
+  .src b { color:#6b6355; font-weight:600; }
+  .link { flex:none; display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:24px; color:#c15f3c; text-decoration:none; padding:11px 22px; border:1.5px solid rgba(193,95,60,.4); border-radius:999px; transition:background .15s,border-color .15s; }
+  .link:hover { background:rgba(193,95,60,.09); border-color:#c15f3c; }
+  .handle { font-family:'Newsreader',serif; font-style:italic; font-weight:400; font-size:24px; color:#a99f8c; }
+</style>
+<style>
+  html,body{height:100%;margin:0;background:#f0eee6;overscroll-behavior:none;word-break:keep-all;}
+  body{display:flex;align-items:center;justify-content:center;height:100dvh;overflow:hidden;}
+  /* 좌우 스와이프 덱 — 높이는 카드 크기만큼, 화면 중앙 배치 */
+  .deck{display:flex;width:100vw;height:var(--cs,60vh);
+        overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;
+        -webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .deck::-webkit-scrollbar{display:none;}
+  .slide{flex:0 0 100vw;width:100vw;height:100%;
+         display:flex;align-items:center;justify-content:center;
+         scroll-snap-align:center;scroll-snap-stop:always;}
+  /* 고정 1080 카드를 zoom 으로 레이아웃째 축소 → 정렬 안 깨짐 (JS가 --z·--ch 설정) */
+  .slide .card{zoom:var(--z,.4);height:var(--ch,1080px);flex:none;}
+  /* 상단 진행 바 */
+  .bar-wrap{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,.06);z-index:10;}
+  #bar{height:100%;width:4.5%;background:#c15f3c;transition:width .25s ease;}
+  /* 좌우 넘김 버튼 (데스크톱/마우스 전용) */
+  .nav{position:fixed;top:50%;transform:translateY(-50%);z-index:11;
+       width:48px;height:48px;border:none;border-radius:50%;cursor:pointer;
+       background:rgba(255,255,255,.9);box-shadow:0 4px 16px rgba(0,0,0,.14);
+       color:#5b5348;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;
+       transition:background .15s;}
+  .nav:hover{background:#fff;}
+  #prev{left:16px;} #next{right:16px;}
+  @media (pointer:coarse){ .nav{display:none;} }   /* 터치기기: 버튼 숨김(스와이프만) */
+  /* 스와이프 힌트 (첫 진입 후 사라짐) */
+  .hint{position:fixed;bottom:58px;left:50%;transform:translateX(-50%);z-index:10;
+        font-size:13px;color:#a99f8c;background:rgba(255,255,255,.72);padding:5px 12px;border-radius:999px;
+        transition:opacity .5s;pointer-events:none;}
+  .hint.gone{opacity:0;}</style>
+</head>
+<body>
+<div class="bar-wrap"><div id="bar"></div></div>
+<div class="deck">
+<div class="slide"><section data-screen-label="01" class="card">
+    <span class="wm" style="font-size:460px; right:36px; bottom:-40px; color:rgba(199,95,60,.08);">9</span>
+    <div style="position:relative; z-index:1; display:flex; flex-direction:column; height:100%;">
+      <div class="top">
+        <span class="sec-tag" style="font-size:24px;">A3 TF · 격주 AI 브리핑</span>
+        <span class="pg">01 — 11</span>
+      </div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+        <div class="eyebrow" style="color:#c15f3c; margin-bottom:30px;">Issue #9 · 2026.08.20</div>
+        <h1 class="title" style="font-size:124px; line-height:1.08;">AI 트렌드 노트<br><span style="color:#c15f3c;">#9</span></h1>
+        <div class="rule" style="width:96px; height:4px; margin-top:36px;"></div>
+      </div>
+      <div class="foot" style="align-items:center;">
+        <span style="font-weight:450; font-size:32px; color:#413c33;">지난 2주의 AI 변화, 골라 담았습니다</span>
+        <span class="handle">A3 TF</span>
+      </div>
+    </div>
+  </section></div>
+<div class="slide"><section data-screen-label="02" class="card">
+    <span class="wm">0</span>
+    <div class="top"><span class="eyebrow">들어가기 전에</span><span class="pg">02 — 11</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-line"></span><span class="sec-tag">INTRO</span></div>
+      <h2 class="title" style="font-size:76px; line-height:1.12; margin-top:22px;">들어가기 전에</h2>
+      <div class="rule"></div>
+      <div style="margin-top:44px; display:flex; flex-direction:column; gap:26px; max-width:900px;">
+        <p style="font-weight:450; font-size:35px; line-height:1.55; color:#413c33;">이번 회차엔 챙길 만한 <span class="hl">8가지</span>를 담았습니다.</p>
+        <p style="font-weight:450; font-size:35px; line-height:1.55; color:#413c33;"><span class="hl">모델 · 도구 · 연구 · 이슈·보안 · 정책</span> 다섯 갈래로 묶었습니다.</p>
+        <p style="font-weight:450; font-size:35px; line-height:1.55; color:#413c33;">각 카드의 요약을 먼저 보시고, 더 궁금한 항목은 위키 트렌드 노트에서 원문으로 이어가시면 됩니다.</p>
+      </div>
+    </div>
+    <div class="foot"><span></span><span class="handle">A3 TF · #9</span></div>
+  </section></div>
+<div class="slide"><section data-screen-label="03" class="card">
+    <span class="wm">1</span>
+    <div class="top"><span class="eyebrow">Section 1</span><span class="pg">03 — 11</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-line"></span><span class="sec-tag">모델</span></div>
+      <h2 class="title" style="font-size:48px; line-height:1.14; margin-top:18px;">3주 만에 후속이 나오고 <span style="color:#c15f3c;">값은 절반</span><br>— Gemini 3.7 Flash</h2>
+      <div class="rule"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Google이 코딩과 에이전트용 주력 모델을 내놨습니다. 직전 3.6 Flash 출시 3주 만입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>공개된 다섯 평가가 모두 올랐고, 코딩 평가는 <span class="hl">34.4%에서 43.6%로</span> 뛰었습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>구독자용 개인 에이전트 Spark도 같은 날부터 이 모델로 바뀌어 160개국에 열렸습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>도입가는 100만 토큰당 입력 0.75달러와 출력 3.75달러로 직전 모델의 절반입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>다만 <span class="hl">12월 31일까지만</span>이고, 이듬해부터는 입력 1.50달러와 출력 7.50달러가 됩니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Google (The Keyword)</b> · 08-13</span><a class="link" href="https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-3-7-flash/" target="_blank" rel="noopener">원문 보기 →</a></div>
+  </section></div>
+<div class="slide"><section data-screen-label="04" class="card">
+    <span class="wm">2</span>
+    <div class="top"><span class="eyebrow">Section 2</span><span class="pg">04 — 11</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-line"></span><span class="sec-tag">도구</span></div>
+      <h2 class="title" style="font-size:44px; line-height:1.14; margin-top:18px;">같은 토큰으로 더 멀리 가는 법<br>— Anthropic이 밝힌 <span style="color:#c15f3c;">세션 비용 구조</span></h2>
+      <div class="rule"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Anthropic이 Claude Code 세션에서 토큰이 어디로 새는지 정리한 가이드를 냈습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>값을 가르는 것은 캐시입니다. 이미 보낸 내용을 다시 읽을 때는 <span class="hl">입력가의 10분의 1</span>만 듭니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>캐시는 요청 맨 앞부터 맞아야 해서, 도중에 모델이나 추론 강도를 바꾸면 <span class="hl">그 뒤가 전부 다시 채워집니다</span>.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>대화를 통째로 요약하는 /compact는 캐시를 깨지만, 최근 대화만 잘라내는 <span class="hl">/rewind는 앞이 그대로라</span> 캐시가 남습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>나머지 절약 요령은 원문에 명령 단위로 정리돼 있으니 꼭 확인해 보시길 권합니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Claude Blog</b> · 08-14</span><a class="link" href="https://claude.com/blog/maximizing-the-value-of-your-claude-code-sessions" target="_blank" rel="noopener">원문 보기 →</a></div>
+  </section></div>
+<div class="slide"><section data-screen-label="05" class="card">
+    <span class="wm">3</span>
+    <div class="top"><span class="eyebrow">Section 2</span><span class="pg">05 — 11</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-line"></span><span class="sec-tag">도구</span></div>
+      <h2 class="title" style="font-size:40px; line-height:1.14; margin-top:18px;">서브에이전트가 <span style="color:#c15f3c;">대화를 통째로 물려받는다</span><br>— Claude Code 2.1.228~234</h2>
+      <div class="rule"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>서브에이전트 분기가 <span class="hl">기본으로 켜지면서</span> 대화 전체와 캐시를 함께 물려받습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>긴 세션에서 화면이 느려지던 문제와 특이한 문자가 섞인 메시지의 렌더링 지연이 고쳐졌습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>골뱅이 기호로 다른 세션을 이름으로 지목하는 입력 방식도 새로 붙었습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Claude API 사용법이 담긴 내장 스킬을 부를 때 실리는 양이 <span class="hl">20만 토큰대에서 2만 5천으로</span> 줄었습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>MCP 서버 설정을 진단하면 환경변수로 감춰 둔 키가 <span class="hl">실제 값으로 화면에 찍히던</span> 문제도 고쳐졌습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Windows에서 같은 파일을 다르게 표기해 경로 검사를 빠져나가던 구멍도 막혔습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Claude Code CHANGELOG</b> · —</span><a class="link" href="https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md" target="_blank" rel="noopener">원문 보기 →</a></div>
+  </section></div>
+<div class="slide"><section data-screen-label="06" class="card">
+    <span class="wm">4</span>
+    <div class="top"><span class="eyebrow">Section 3</span><span class="pg">06 — 11</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-line"></span><span class="sec-tag">연구</span></div>
+      <h2 class="title" style="font-size:44px; line-height:1.14; margin-top:18px;">같은 모델을 써도 격차는 <span style="color:#c15f3c;">8.3배</span><br>— OpenAI 기업 고객 실사용 데이터</h2>
+      <div class="rule"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>OpenAI가 기업 고객 실사용 데이터로 낸 보고서입니다. 표본은 1,000만 건이 넘는 메시지입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>상위 10% 기업 직원은 중간 기업 직원보다 8.3배 많이 뽑아냅니다. <span class="hl">1월엔 2.6배</span>였습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>기업이 쓰는 출력 가운데 에이전트가 만든 몫이 64%로, 작년 8월 거의 0에서 올라왔습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>격차는 도구와 나란히 벌어졌습니다. 반복 지시를 묶어 두는 스킬을 매주 쓰는 비율이 <span class="hl">19% 대 3%</span>였습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>쓰는 사람도 엔지니어링 밖에서 더 빨리 늡니다. 2월 이후 <span class="hl">법무 직군은 108배</span>, 엔지니어링은 5배 늘었습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>OpenAI</b> · 08-12</span><a class="link" href="https://openai.com/index/how-enterprises-put-ai-to-work/" target="_blank" rel="noopener">원문 보기 →</a></div>
+  </section></div>
+<div class="slide"><section data-screen-label="07" class="card">
+    <span class="wm">5</span>
+    <div class="top"><span class="eyebrow">Section 3</span><span class="pg">07 — 11</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-line"></span><span class="sec-tag">연구</span></div>
+      <h2 class="title" style="font-size:48px; line-height:1.14; margin-top:18px;">같은 모델을 여럿 띄우면 <span style="color:#c15f3c;">실수도 똑같이 한다</span><br>— Anthropic 연구</h2>
+      <div class="rule"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>에이전트를 여러 대 굴리면 한 대일 때 없던 고장이 난다는 연구입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>연구는 원인 하나로 <span class="hl">서로 너무 닮은</span> 점을 듭니다. 같은 모델을 여럿 띄우면 성향이 갈리지 않습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>같은 일을 시키자 <span class="hl">30대 중 18대가 똑같은 브랜치 이름</span>을 지었고, 협력이 이득인 게임에서도 하나같이 배신했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>거짓이 섞인 정보를 가려내는 비율은 Mythos 5가 85%, Sonnet 계열은 62%로 갈렸습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>조율할 방법을 주지 않자 초당 30번씩 찔러 대는 방식으로 몰려, 작업 요청 <span class="hl">240만 건 중 117건</span>만 통과했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Anthropic은 조정 능력이 지능과 함께 저절로 생기지는 않는다고 못 박았습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Anthropic Research</b> · 08-13</span><a class="link" href="https://www.anthropic.com/research/multiagent-systems" target="_blank" rel="noopener">원문 보기 →</a></div>
+  </section></div>
+<div class="slide"><section data-screen-label="08" class="card">
+    <span class="wm">6</span>
+    <div class="top"><span class="eyebrow">Section 4</span><span class="pg">08 — 11</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-line"></span><span class="sec-tag">이슈·보안</span></div>
+      <h2 class="title" style="font-size:48px; line-height:1.14; margin-top:18px;">감춰 둔 추론을 <span style="color:#c15f3c;">약한 형제 모델이 받아 적는다</span><br>— 트레이스 탈취</h2>
+      <div class="rule"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>요즘 모델은 답하기 전에 속으로 생각하는데, 그 사고 기록은 회사 자산이라 암호로 감춰 돌려줍니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>이 연구는 감춰진 사고 기록을 받아, 같은 회사의 더 약한 모델에게 이전 턴의 제 생각인 것처럼 건넵니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>같은 계열이면 <span class="hl">암호 키를 공유</span>하기 때문에 약한 모델은 그것을 읽을 수 있습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>그 모델의 안전장치를 우회하게 만들어 강한 모델의 사고를 받아 적게 하는 것이 공격의 전부입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Claude 4.6에서는 그 기능을 없앴지만 <span class="hl">Haiku 4.5에서는 여전히</span> 작동한다고 이야기합니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>모델이 자기 사고 기록을 유난히 신뢰하는 성질을 이용해 <span class="hl">그 안에 지시를 심는</span> 변형도 가능하다고 짚었습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Simon Willison's Weblog</b> · 08-11</span><a class="link" href="https://simonwillison.net/2026/Aug/11/stealing-reasoning-traces/" target="_blank" rel="noopener">원문 보기 →</a></div>
+  </section></div>
+<div class="slide"><section data-screen-label="09" class="card">
+    <span class="wm">7</span>
+    <div class="top"><span class="eyebrow">Section 5</span><span class="pg">09 — 11</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-line"></span><span class="sec-tag">정책</span></div>
+      <h2 class="title" style="font-size:48px; line-height:1.14; margin-top:18px;">Claude가 쓴 글에 <span style="color:#c15f3c;">표식이 박힌다</span><br>— 방식과 한계를 밝힌 공식 설명</h2>
+      <div class="rule"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>Anthropic이 8월 2일 이후 나오는 모든 Claude 모델의 글에 표식을 심습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p><span class="hl">유럽연합 인공지능법</span> 때문이며, 7월에 주요 AI 회사들과 함께 그 이행 규약에 서명했습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>표식은 <span class="hl">단어를 고르는 순간에</span> 들어갑니다. 비밀 키로 다음 단어 후보를 두 편 갈라, 한쪽이 조금 더 자주 나오게 기울입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>한 번으로는 티가 안 납니다. 그런데 글이 길어질수록 그 한쪽이 쌓여, 같은 키로 되짚으면 통계로 드러납니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>그래서 짧은 글은 표식이 모일 틈이 없어 판정이 안 되고, 통째로 다시 쓰면 사라집니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>사람이 쓴 글을 Claude가 교정만 한 경우도 원문이 대부분이라 <span class="hl">거의 감지되지 않습니다</span>.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Anthropic News</b> · 08-14</span><a class="link" href="https://www.anthropic.com/news/claude-text-watermark" target="_blank" rel="noopener">원문 보기 →</a></div>
+  </section></div>
+<div class="slide"><section data-screen-label="10" class="card">
+    <span class="wm">8</span>
+    <div class="top"><span class="eyebrow">Section 5</span><span class="pg">10 — 11</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-line"></span><span class="sec-tag">정책</span></div>
+      <h2 class="title" style="font-size:49px; line-height:1.14; margin-top:18px;"><span style="color:#c15f3c;">탐지되려고 단어를 고른다</span> — 워터마크에<br>대한 정면 반박</h2>
+      <div class="rule"></div>
+      <div class="bullets">
+        <div class="bl"><span class="bl-dot"></span><p>존 그루버가 Anthropic 발표 이틀 뒤에 정면 반박 글을 올렸습니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>문제 삼은 것은 단어가 뽑히는 이유입니다. 글이 좋아지는 쪽이 아니라 <span class="hl">찾기 쉬운 쪽으로</span> 기운다는 지적입니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>어느 쪽을 골라도 <span class="hl">뜻이 같은 자리란 없</span>으며 단어 하나하나가 제 몫을 한다고 봅니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>Claude가 쓴 코드에는 정확성 때문에 표식을 거의 안 거는데, 글은 함부로 손대도 되냐고 따집니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>비밀 키는 만든 쪽만 쥐고 있어, 어느 단어가 표식 탓에 뽑혔는지 글쓴이도 모릅니다.</p></div>
+        <div class="bl"><span class="bl-dot"></span><p>유럽연합 규약이라는 근거는 인정하면서도 규제 자체를 거칠게 비난하고, 결국 <span class="hl">정직한 사람만 걸릴 것</span>이라고 보았습니다.</p></div>
+      </div>
+    </div>
+    <div class="foot"><span class="src">출처 · <b>Daring Fireball (John Gruber)</b> · 08-16</span><a class="link" href="https://daringfireball.net/2026/08/anthropics_watermark_text_adulteration_in_claude_is_a_perversion_of_writing" target="_blank" rel="noopener">원문 보기 →</a></div>
+  </section></div>
+<div class="slide"><section data-screen-label="13" class="card">
+    <span class="wm">9</span>
+    <div class="top"><span class="eyebrow">마무리</span><span class="pg">11 — 11</span></div>
+    <div class="body">
+      <div class="sec"><span class="sec-line"></span><span class="sec-tag">THE END</span></div>
+      <h2 class="title" style="font-size:80px; line-height:1.12; margin-top:22px;">여기까지입니다</h2>
+      <div class="rule"></div>
+      <div style="margin-top:42px; display:flex; flex-direction:column; gap:22px; max-width:900px;">
+        <p style="font-weight:450; font-size:35px; line-height:1.55; color:#413c33;">마음이 간 항목은 <span class="hl">위키 트렌드 노트 #9</span>에서 원문으로 이어집니다.</p>
+        <p style="font-weight:450; font-size:35px; line-height:1.55; color:#413c33;">천천히 살펴보시고, 다음 회차 <span class="hl">#10</span>에서 다시 뵙겠습니다.</p>
+      </div>
+      <div style="margin-top:46px; display:flex; align-items:center; gap:18px; flex-wrap:wrap;">
+        <a class="link" href="https://wiki.navercorp.com/spaces/VERCOMFORM/pages/5270575630/A3+TF+%ED%8A%B8%EB%A0%8C%EB%93%9C+%EB%85%B8%ED%8A%B8" target="_blank" rel="noopener">위키에서 원문 보기 →</a>
+        <span style="font-weight:450; font-size:26px; color:#a99f8c;">전체 노트는 위키 트렌드 노트에 있습니다.</span>
+      </div>
+    </div>
+    <div class="foot"><span class="src">A3 TF · 격주 AI 브리핑</span><span class="handle">A3 TF · #9</span></div>
+  </section></div>
+</div>
+<button class="nav" id="prev" aria-label="이전">‹</button>
+<button class="nav" id="next" aria-label="다음">›</button>
+<div class="hint">← 밀어서 넘기기 →</div>
+
+  <script>
+  (function(){
+    var deck=document.querySelector('.deck'), cur=document.getElementById('cur'),
+        bar=document.getElementById('bar'), hint=document.querySelector('.hint'), N=11;
+    function fit(){
+      var vw=window.innerWidth, vh=window.innerHeight, root=document.documentElement.style, z, ch, cs;
+      if(vh>=vw){ z=vw*0.97/1080; cs=vh*0.72; ch=cs/z; }        // 세로(모바일): 포트레이트로 크게
+      else { z=Math.min(vw,vh)*0.94/1080; ch=1080; cs=1080*z; } // 가로(데스크톱): 정사각 맞춤
+      root.setProperty('--z', z);
+      root.setProperty('--ch', ch+'px');
+      root.setProperty('--cs', cs+'px');
+    }
+    function pad(n){return (n<10?'0':'')+n;}
+    function upd(){
+      var i=Math.round(deck.scrollLeft/deck.clientWidth);
+      if(i<0)i=0; if(i>N-1)i=N-1;
+      if(cur)cur.textContent=pad(i+1);
+      bar.style.width=((i+1)/N*100)+'%';
+    }
+    fit(); upd();
+    deck.addEventListener('scroll', function(){ upd(); if(hint&&!hint.classList.contains('gone'))hint.classList.add('gone'); }, {passive:true});
+    window.addEventListener('resize', function(){ fit(); upd(); });
+    window.addEventListener('orientationchange', function(){ setTimeout(function(){fit();upd();},200); });
+    if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+    setTimeout(fit,400);
+    window.addEventListener('keydown', function(e){
+      if(e.key==='ArrowRight'||e.key===' ') { deck.scrollBy({left:deck.clientWidth,behavior:'smooth'}); e.preventDefault(); }
+      if(e.key==='ArrowLeft') deck.scrollBy({left:-deck.clientWidth,behavior:'smooth'});
+    });
+    document.getElementById('next').onclick=function(){ deck.scrollBy({left:deck.clientWidth,behavior:'smooth'}); };
+    document.getElementById('prev').onclick=function(){ deck.scrollBy({left:-deck.clientWidth,behavior:'smooth'}); };
+    setTimeout(function(){ if(hint) hint.classList.add('gone'); }, 3500);
+  })();
+  </script>
+</body>
+</html>
